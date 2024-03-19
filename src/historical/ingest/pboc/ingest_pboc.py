@@ -40,4 +40,6 @@ if __name__ == "__main__":
         success = download_xlsx(url, cleaned_table_name, s3_bucket, s3_key)
         print("Sleeping for 3 seconds...")
         time.sleep(3)
+
+    print("Finished.")
     
