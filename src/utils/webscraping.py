@@ -3,6 +3,9 @@ import pandas as pd
 from io import StringIO
 from bs4 import BeautifulSoup
 
+################################################################################
+# 
+################################################################################
 def fetch_table(url: str, header: int) -> pd.DataFrame:
     """Fetch table from URL. Must be an html <table> for pd.read_html to recognize."""
     response = requests.get(url)
@@ -14,6 +17,9 @@ def fetch_table(url: str, header: int) -> pd.DataFrame:
     
     return None
 
+################################################################################
+# 
+################################################################################
 def download_html(url: str) -> str:
     try:
         response = requests.get(url)
@@ -22,7 +28,10 @@ def download_html(url: str) -> str:
     except requests.exceptions.RequestException as e:
         print(f"Error fetching html.\n{e}")
         return None
-    
+
+################################################################################
+# 
+################################################################################
 def download_xlsx(url: str, output_path: str) -> None:
     try:
         response = requests.get(url)
@@ -37,7 +46,10 @@ def download_xlsx(url: str, output_path: str) -> None:
     except requests.exceptions.RequestException as e:
         print(f"Error while downloading xlsx.\n{e}")
         return False
-    
+
+################################################################################
+# 
+################################################################################
 def extract_links(html: str) -> list:
     soup = BeautifulSoup(html, 'html.parser')
     name_link_dict = {}
@@ -54,3 +66,16 @@ def extract_links(html: str) -> list:
                     if link['href'].endswith('.xlsx'):
                         name_link_dict[name] = link['href']
     return name_link_dict
+
+################################################################################
+# 
+################################################################################
+def construct_pboc_url(base_url: str, insertion: str) -> str:
+    # Find the index of the last occurrence of "/"
+    last_slash_index = base_url.rfind('/')
+    
+    # Split the string into before and after "/"
+    before_last_slash = base_url[:last_slash_index + 1]  # Include the "/"
+    after_last_slash = base_url[last_slash_index + 1:]
+        
+    return before_last_slash + insertion + "/" + after_last_slash

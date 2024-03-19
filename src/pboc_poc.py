@@ -1,5 +1,7 @@
 import time
-from src.utils.webscraping import download_html, download_xlsx, extract_links
+import sys
+from src.utils.webscraping import download_html, download_xlsx, extract_links, construct_pboc_url
+from src.utils.storage import load_config
 
 if __name__ == "__main__":
     # In the 2024 Money and Banking Statistics page, find the href for .xlsx download
@@ -15,8 +17,17 @@ if __name__ == "__main__":
     # Later feature: look for year link from Statistics -> Data page
     # For now, just use 2024
 
+    config_path = "../config.yml"
+    config = load_config(config_path)
+    url = config['webscraping']['urls']
+    print(url)
+
     # Fetch html for 2024 Money and Banking Statistics landing page.
-    mbs_url = "http://www.pbc.gov.cn/en/3688247/3688975/5242368/5242424/index.html"
+    mbs_base_url = config['webscraping']['urls']['pboc']['2024']['base']
+    mbs_insertion = config['webscraping']['urls']['pboc']['2024']['money-and-banking-statistics']
+    mbs_url = construct_pboc_url(mbs_base_url, mbs_insertion)
+    print(mbs_url)
+    sys.exit()
     html = download_html(mbs_url)
     # Extract {table name: url path}
     xlsx_links = extract_links(html)
