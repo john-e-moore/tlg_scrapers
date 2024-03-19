@@ -1,5 +1,8 @@
 import requests
+import boto3
+from botocore.exceptions import ClientError, BotoCoreError
 import pandas as pd
+from datetime import datetime
 from io import StringIO
 from bs4 import BeautifulSoup
 
@@ -32,17 +35,35 @@ def download_html(url: str) -> str:
 ################################################################################
 # 
 ################################################################################
-def download_xlsx(url: str, output_path: str) -> None:
+def download_xlsx(url: str, output_filename: str, s3_bucket=None, s3_key=None) -> None:
     try:
         response = requests.get(url)
-        # Make sure response is an Excel file
-        if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' not in response.headers.get('Content-Type', ''):
-            print("The link did not direct to an Excel file.")
-            return False
         response.raise_for_status()
-        with open(output_path, 'wb') as file:
-            file.write(response.content)
-        return True
+
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+
+        if s3_bucket and s3_key:
+            full_key = f'{s3_key}{output_filename}_{timestamp}.xlsx'
+            try:
+                s3 = boto3.client('s3')
+                response = s3.put_object(Bucket=s3_bucket, Key=full_key, Body=response.content)
+                print(f"Successfully uploaded: {response}")
+                return True
+            except ClientError as e:
+                print(f"Client error occurred:\n{e}")
+                return False
+            except BotoCoreError as e:
+                print(f"BotoCore error occurred:\n{e}")
+                return False
+            except Exception as e:
+                print(f"Unexpected error occurred:\n{e}")
+                return False
+        else:
+            full_output_filename = f'{output_filename}_{timestamp}.xlsx'
+            with open(full_output_filename, 'wb') as file:
+                file.write(response.content)
+                response = f"Successfully downloaded: {full_output_filename}"
+            return True
     except requests.exceptions.RequestException as e:
         print(f"Error while downloading xlsx.\n{e}")
         return False
@@ -50,7 +71,7 @@ def download_xlsx(url: str, output_path: str) -> None:
 ################################################################################
 # 
 ################################################################################
-def extract_links(html: str) -> list:
+def extract_paths(html: str) -> list:
     soup = BeautifulSoup(html, 'html.parser')
     name_link_dict = {}
     tables = soup.find_all('table', class_='data_table')
