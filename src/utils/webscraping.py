@@ -59,7 +59,7 @@ def download_xlsx(url: str, output_filename: str, s3_bucket=None, s3_key=None) -
                 print(f"Unexpected error occurred:\n{e}")
                 return False
         else:
-            full_output_filename = f'{output_filename}_{timestamp}.xlsx'
+            full_output_filename = f'{output_filename}.xlsx'
             with open(full_output_filename, 'wb') as file:
                 file.write(response.content)
                 response = f"Successfully downloaded: {full_output_filename}"
