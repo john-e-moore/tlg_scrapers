@@ -1,7 +1,24 @@
-* Explore step functions since I'm chaining Lambda functions together
-* Deploy lambda function w/ daily trigger
-* Clean tables (bronze to silver)
+* Add email to replace_updated_files.py (just email the raw file for now)
+* Deploy replace_updated_files.py lambda function w/ daily trigger 6am
+
+* Develop table processing (bronze to silver)
+* Deploy lambda function 
+
 * Finish historical download back to 2006
-* Aggregate (silver to gold; schema in aggregate.py)
-* Prefect for monitoring? Or just Cloudwatch?
-* Refactor -- get rid of for loops
+
+* Develop aggregation (silver to gold; schema in aggregate.py)
+* Deploy lambda function
+
+* Develop charts
+* Deploy lambda function
+
+* Develop logic to pull aggregation table & charts and send an email
+* Deploy lambda function
+
+* Develop data cleanup 
+* Deploy to lambda
+
+* Set up step function state machine
+
+* Configure Cloudwatch monitoring & alerts
+* Configure SNS for failure notifications and other significant events
