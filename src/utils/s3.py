@@ -1,4 +1,3 @@
-import yaml
 import boto3
 from datetime import datetime
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
@@ -69,13 +68,3 @@ def upload_local_file_s3(local_file: str, s3_bucket: str, s3_key: str) -> bool:
         print(f"Unexpected error occurred:\n{e}")
         return False
     
-################################################################################
-# 
-################################################################################
-def load_config(config_path: str) -> dict:
-    """Load config from yml file."""
-    try:
-        with open(config_path, 'r') as file:
-            return yaml.safe_load(file)
-    except yaml.YAMLError as exc:
-        print(f"Error in configuration file:\n{exc}")

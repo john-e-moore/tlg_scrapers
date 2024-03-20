@@ -1,9 +1,11 @@
 import re
 import time
-import boto3
-from src.utils.webscraping import download_html, download_xlsx, extract_paths, construct_pboc_url
-from src.utils.storage import load_config, get_most_recently_modified_file, upload_local_file_s3
-from utils.processing import check_file_change
+from utils.webscraping import download_html, download_xlsx, extract_paths, construct_pboc_url
+from utils.config import load_config
+from utils.s3 import get_most_recently_modified_file, upload_local_file_s3
+from utils.cryptography import check_file_change
+
+# NOTE: for Lambda function, return the s3 paths of updated files. return None if none updated.
 
 if __name__ == "__main__":
     # Config

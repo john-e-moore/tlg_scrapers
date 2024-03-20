@@ -1,7 +1,7 @@
 import re
 import time
 from src.utils.webscraping import download_html, download_xlsx, extract_paths, construct_pboc_url
-from src.utils.storage import load_config
+from src.utils.config import load_config
 
 if __name__ == "__main__":
     # TODO: allow user to choose years; only doing 2024 for now
