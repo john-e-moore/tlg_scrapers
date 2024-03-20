@@ -1,4 +1,3 @@
-* Reorganize utils folder
 * Test email functionality
 * Deploy lambda function w/ daily trigger
 * Explore step functions since I'm chaining Lambda functions together
