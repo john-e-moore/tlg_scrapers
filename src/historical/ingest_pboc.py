@@ -1,6 +1,5 @@
 import re
 import time
-import sys
 from src.utils.webscraping import download_html, download_xlsx, extract_paths, construct_pboc_url
 from src.utils.storage import load_config
 
@@ -8,7 +7,7 @@ if __name__ == "__main__":
     # TODO: allow user to choose years; only doing 2024 for now
 
     # Config
-    config = load_config("../config.yml")
+    config = load_config("../../config.yml") # Run from base directory
     s3_bucket = config['storage']['pboc']['s3_bucket']
     s3_key = config['storage']['pboc']['s3_bronze_key']
     pboc_base_url = config['webscraping']['urls']['pboc']['base']
