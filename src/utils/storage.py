@@ -50,11 +50,13 @@ def get_most_recently_modified_file(bucket, prefix):
 ################################################################################
 def upload_local_file_s3(local_file: str, s3_bucket: str, s3_key: str) -> bool:
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-    file_without_extension = local_file.split('.')[0]
+    file_without_extension = local_file.split('.')[0].replace('tmp/', '')
     full_key = f'{s3_key}{file_without_extension}_{timestamp}.xlsx'
     try:
-        s3 = boto3.client('s3')
-        response = s3.put_object(Bucket=s3_bucket, Key=full_key, Body=response.content)
+        s3_client = boto3.client('s3')
+        with open(local_file, 'rb') as file:
+            
+            response = s3_client.put_object(Bucket=s3_bucket, Key=full_key, Body=file)
         print(f"Successfully uploaded: {response}")
         return True
     except ClientError as e:
