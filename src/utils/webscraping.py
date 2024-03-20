@@ -35,7 +35,7 @@ def download_html(url: str) -> str:
 ################################################################################
 # 
 ################################################################################
-def download_xlsx(url: str, output_filename: str, s3_bucket=None, s3_key=None) -> None:
+def download_xlsx(url: str, output_filename: str, s3_bucket=None, s3_key=None) -> bool:
     try:
         response = requests.get(url)
         response.raise_for_status()
