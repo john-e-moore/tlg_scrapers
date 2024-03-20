@@ -4,3 +4,4 @@ tmp/
 *__pycache__*
 config.yml
 pat.txt
+*example.py

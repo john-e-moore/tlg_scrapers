@@ -1,6 +1,5 @@
-* Test email functionality
-* Deploy lambda function w/ daily trigger
 * Explore step functions since I'm chaining Lambda functions together
+* Deploy lambda function w/ daily trigger
 * Clean tables (bronze to silver)
 * Finish historical download back to 2006
 * Aggregate (silver to gold; schema in aggregate.py)
