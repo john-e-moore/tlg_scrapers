@@ -7,7 +7,7 @@ from utils.processing import check_file_change
 
 if __name__ == "__main__":
     # Config
-    config = load_config("../../config.yml") # Run from base directory
+    config = load_config("config.yml") # Run from base directory
     s3_bucket = config['storage']['pboc']['s3_bucket']
     s3_key = config['storage']['pboc']['s3_bronze_key']
     pboc_base_url = config['webscraping']['urls']['pboc']['base']
