@@ -46,7 +46,6 @@ if __name__ == "__main__":
     # Check if files have changed
     changed_files = []
     for file in local_files:
-        print(f"Checking {file} for updates...")
         cleaned_file_name = file.split('/')[1].split('.')[0]
 
         # Get most recent version of file in S3
@@ -64,13 +63,4 @@ if __name__ == "__main__":
                 upload_local_file_s3(file, s3_bucket, s3_key)
         else:
             print(f"No file found matching prefix {s3_prefix}")
-        break # Testing
 
-
-
-    
-
-
-    # Download .xlsx to /tmp
-    # Calculate MD5 hash
-    # Compare hashes

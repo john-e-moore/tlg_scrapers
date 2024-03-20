@@ -4,6 +4,9 @@ from datetime import datetime
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from botocore.exceptions import ClientError, BotoCoreError
 
+################################################################################
+# 
+################################################################################
 def get_most_recently_modified_file(bucket, prefix):
     """
     Find the most recently modified file within an S3 bucket with the given prefix.
@@ -64,7 +67,9 @@ def upload_local_file_s3(local_file: str, s3_bucket: str, s3_key: str) -> bool:
         print(f"Unexpected error occurred:\n{e}")
         return False
     
-
+################################################################################
+# 
+################################################################################
 def load_config(config_path: str) -> dict:
     """Load config from yml file."""
     try:

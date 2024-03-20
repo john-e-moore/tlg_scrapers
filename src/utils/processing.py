@@ -1,6 +1,9 @@
 import boto3
 import hashlib
 
+################################################################################
+# 
+################################################################################
 def calculate_md5(filepath: str) -> str:
     """Calculate the MD5 hash of a file."""
     hash_md5 = hashlib.md5()
@@ -9,6 +12,9 @@ def calculate_md5(filepath: str) -> str:
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
+################################################################################
+# 
+################################################################################
 def check_file_change(local_file: str, bucket_name: str, object_key: str) -> bool:
     """Check if a local file is different from the version stored in S3."""
     s3_client = boto3.client('s3')
@@ -34,13 +40,9 @@ def check_file_change(local_file: str, bucket_name: str, object_key: str) -> boo
         print(f"An error occurred: {e}")
         return True  # Treat errors as a change for safety
 
-# Usage example
-#local_file_path = 'path/to/your/local.xlsx'
-#bucket_name = 'your-s3-bucket'
-#object_key = 'path/to/s3/object.xlsx'
-#has_changed = check_file_change_s3(local_file_path, bucket_name, object_key)
-
-
+################################################################################
+# 
+################################################################################
 def clean_text(text):
     """Apply to all cells of a DataFrame to remove non-ASCII and leading/trailing spaces."""
     if isinstance(text, str):

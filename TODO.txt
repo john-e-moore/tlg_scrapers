@@ -1,6 +1,9 @@
+* Reorganize utils folder
 * Test email functionality
-* Write logic to compare ETag (chatgpt: redirection loop handling)
 * Deploy lambda function w/ daily trigger
+* Explore step functions since I'm chaining Lambda functions together
 * Clean tables (bronze to silver)
 * Finish historical download back to 2006
 * Aggregate (silver to gold; schema in aggregate.py)
+* Prefect for monitoring? Or just Cloudwatch?
+* Refactor -- get rid of for loops
