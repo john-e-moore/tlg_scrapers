@@ -15,6 +15,7 @@ class TestS3Utility(unittest.TestCase):
         self.mock_aws = mock_aws()
         self.mock_aws.start()
 
+        # Set up test resources
         self.bucket = 'test-bucket'
         self.prefix = 'test'
         self.s3_client = boto3.client('s3', region_name='us-east-1')
@@ -22,6 +23,10 @@ class TestS3Utility(unittest.TestCase):
         self.test_key = f'{self.prefix}/file.csv'
         self.local_file_path = 'test_file.csv'
         self.df = pd.DataFrame({'col1': [1, 2], 'col2': [3, 4]})
+
+    @mock_aws
+    def tearDown(self):
+        self.mock_aws.stop()
 
     @mock_aws
     def test_get_latest_file(self):
