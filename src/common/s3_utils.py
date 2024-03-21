@@ -9,6 +9,7 @@ class S3Utility:
         """
         Retrieves the most recent file (based on Last Modified date) from an S3 bucket for a given prefix.
         """
+        s3_client = boto3.client('s3')
         try:
             response = s3_client.list_objects_v2(Bucket=bucket, Prefix=prefix)
             files = response.get('Contents', [])
@@ -74,7 +75,6 @@ class S3Utility:
         """
         buffer = None
         s3_client = boto3.client('s3')
-        
         try:
             if file_type == 'csv':
                 buffer = df.to_csv(index=False)
