@@ -1,0 +1,24 @@
+email:
+  sender: "sender@gmail.com"
+  recipients: 
+   - "recipient1@gmail.com"
+   - "recipient2@gmail.com"
+  gmail_app_password: "your-gmail-app-password"
+aws:
+  s3_bucket: your-s3-bucket
+  region: your-aws-region
+  pboc:
+    s3_bronze_key: your/s3/bronze/key
+    s3_silver_key: your/s3/silver/key
+    s3_gold_key: your/s3/gold/key
+webscraping:
+  urls:
+    pboc:
+      base: http://www.base-url.com
+      "2024": 
+        base: http://www.base-url-2024.com
+        extensions:
+          "key": "value"
+          "key": "value"
+
+
