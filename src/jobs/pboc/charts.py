@@ -1,1 +1,0 @@
-# Create charts to be emailed with spreadsheet from gold data
