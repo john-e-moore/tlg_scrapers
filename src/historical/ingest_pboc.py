@@ -4,6 +4,7 @@ from utils.webscraping import download_html, download_xlsx, extract_paths, const
 from utils.config import load_config
 
 if __name__ == "__main__":
+    # TODO: ***NEEDS UPDATE W/ NEW CLASSES***
     # TODO: allow user to choose years; only doing 2024 for now
 
     # Config
