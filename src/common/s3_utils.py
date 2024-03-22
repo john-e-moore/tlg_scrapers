@@ -1,11 +1,13 @@
+import re
 import boto3
 import pandas as pd
 from typing import Any
+from datetime import datetime
 from botocore.exceptions import NoCredentialsError, ClientError
 
 class S3Utility:
     @staticmethod
-    def get_latest_file(bucket: str, prefix: str, s3_client: Any) -> str:
+    def get_latest_file_key(bucket: str, prefix: str) -> str:
         """
         Retrieves the most recent file (based on Last Modified date) from an S3 bucket for a given prefix.
         """
@@ -21,6 +23,20 @@ class S3Utility:
 
         latest_file = max(files, key=lambda x: x['LastModified'])
         return latest_file['Key']
+    
+    @staticmethod
+    def download_etag(bucket: str, key: str) -> str:
+        s3_client = boto3.client('s3')
+        try:
+            s3_object = s3_client.head_object(Bucket=bucket, Key=key)
+            s3_etag = s3_object['ETag'].strip('"')  # Remove double quotes from ETag
+            return s3_etag
+        except s3_client.exceptions.NoSuchKey:
+            print("The object does not exist in S3.")
+            return None 
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
 
     @staticmethod
     def upload_local_file_to_s3(local_file_path: str, bucket: str, key: str) -> None:
@@ -29,7 +45,8 @@ class S3Utility:
         """
         s3_client = boto3.client('s3')
         try:
-            s3_client.upload_file(local_file_path, bucket, key)
+            response = s3_client.upload_file(local_file_path, bucket, key)
+            print(f"Successfully uploaded:\n{response}")
         except (ClientError, NoCredentialsError) as e:
             raise Exception(f"Failed to upload file to S3: {e}")
 
@@ -87,6 +104,37 @@ class S3Utility:
             else:
                 raise Exception(f"Unsupported file type: {file_type}")
 
-            s3_client.put_object(Bucket=bucket, Key=key, Body=buffer)
+            response = s3_client.put_object(Bucket=bucket, Key=key, Body=buffer)
+            print(f"Successfully uploaded:\n{response}")
         except (ClientError, NoCredentialsError) as e:
             raise Exception(f"Failed to upload DataFrame to S3: {e}")
+    
+    @staticmethod
+    def upload_obj_s3(bucket: str, key: str, obj: str) -> None:
+        """
+        Uploads an object to S3.
+        """
+        s3_client = boto3.client('s3')
+        try:
+            response = s3_client.put_object(Bucket=bucket, Key=key, Body=obj)
+            print(f"Successfully uploaded:\n{response}")
+        except (ClientError, NoCredentialsError) as e:
+            raise Exception(f"Failed to upload object to S3: {e}")
+        
+    @staticmethod
+    def replace_timestamp_in_filename(filename: str) -> str:
+        """
+        Replaces an old timestamp in the file name with the current timestamp.
+        The timestamp format is assumed to be YYYYMMDD.
+
+        :param filename: The original file name with the old timestamp.
+        :return: The new file name with the current timestamp.
+        """
+        current_timestamp = datetime.now().strftime("%Y%m%d")
+        pattern = r'(\d{8})(?=\.\w+$)'  # Looks for 8 digits before the file extension
+        # Replace the old timestamp with the current timestamp
+        new_filename = re.sub(pattern, current_timestamp, filename)
+
+        return new_filename
+
+            

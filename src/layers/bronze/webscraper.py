@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any
 
 class Webscraper:
 
-    def __init__(self, base_url: str, username: Optional[str] = None, password: Optional[str] = None, headers: Optional[Dict[str, str]] = None):
+    def __init__(self, base_url: str = None, username: Optional[str] = None, password: Optional[str] = None, headers: Optional[Dict[str, str]] = None):
         self.base_url = base_url
         self.username = username
         self.password = password

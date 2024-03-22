@@ -1,3 +1,10 @@
+* Re-do everything w/ general classes and atomic methods. Can reuse classes
+* in future projects.
+* Tests for webscraper class
+* Write email class
+* Tests for email class
+* Handler for bronze layer
+
 * Add email to replace_updated_files.py (just email the raw file for now)
 * Deploy replace_updated_files.py lambda function w/ daily trigger 6am
 
