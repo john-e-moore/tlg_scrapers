@@ -1,30 +1,11 @@
 import re
 import time
-import boto3
 import hashlib
 from bs4 import BeautifulSoup
 from layers.bronze.webscraper import Webscraper
 from common.s3_utils import S3Utility
 from common.emailer import Emailer
 from common.config_utils import load_config
-import sys
-
-def format_title(s: str) -> str:
-    # List of words not to capitalize in titles
-    small_words = {"a", "an", "the", "and", "but", "for", "nor", "or", "so", "yet", "at", 
-                   "by", "in", "of", "on", "to", "up", "for", "with", "over", "into", "onto", "from"}
-    caps_words = {"rmb, cgpi"}
-    words = s.split('-')
-    title_words = []
-    for i, word in enumerate(words):
-        if word in caps_words:
-            title_words.append(word.upper())
-        elif i == 0 or i == len(words) - 1 or word not in small_words:
-            title_words.append(word.capitalize())
-        else:
-            title_words.append(word)
-
-    return ' '.join(title_words)
 
 ################################################################################
 # Hashing
@@ -65,8 +46,27 @@ def construct_pboc_url(base_url: str, insertion: str) -> str:
         
     return before_last_slash + insertion + "/" + after_last_slash
 
+def format_title(s: str) -> str:
+    # List of words not to capitalize in titles
+    small_words = {"a", "an", "the", "and", "but", "for", "nor", "or", "so", "yet", "at", 
+                   "by", "in", "of", "on", "to", "up", "for", "with", "over", "into", "onto", "from"}
+    caps_words = {"rmb, cgpi"}
+    words = s.split('-')
+    title_words = []
+    for i, word in enumerate(words):
+        if word in caps_words:
+            title_words.append(word.upper())
+        elif i == 0 or i == len(words) - 1 or word not in small_words:
+            title_words.append(word.capitalize())
+        else:
+            title_words.append(word)
 
-if __name__ == "__main__":
+    return ' '.join(title_words)
+
+################################################################################
+# Main function
+################################################################################
+def main():
     # Config
     config = load_config("common/config.yml") # Run from base directory
     ## S3
@@ -76,9 +76,6 @@ if __name__ == "__main__":
     pboc_base_url = config['webscraping']['urls']['pboc']['base']
     base_url_2024 = config['webscraping']['urls']['pboc']['2024']['base']
     extensions_2024 = config['webscraping']['urls']['pboc']['2024']['extensions'] # dict
-    #extensions_2024 = list(config['webscraping']['urls']['pboc']['2024']['extensions'].values())
-    #parent_categories_2024 = list(config['webscraping']['urls']['pboc']['2024']['extensions'].keys())
-    #parent_categories_2024 = [format_title(x) for x in parent_categories_2024]
     ## Email
     sender = config['email']['sender']
     gmail_app_password = config['email']['gmail_app_password']
@@ -108,12 +105,6 @@ if __name__ == "__main__":
         email_input[parent_category] = extract_download_paths(html, 'htm')
         print("xlsx and htm paths extracted. Sleeping for 3 seconds...")
         time.sleep(3)
-    """
-    for k,v in email_input.items():
-        print(f"***{k}***")
-        for x,y in v.items():
-            print(f"{x}: {y}")
-    """
     
     # Download .xlsx files
     spreadsheets = dict()
@@ -121,7 +112,6 @@ if __name__ == "__main__":
     for table_name, path in xlsx_paths.items():
         url = pboc_base_url + path
         cleaned_table_name = re.sub(r'[^a-zA-Z\s]', '', table_name).lower().replace(' ', '_')
-        #categories_urls[cleaned_table_name] = url
         print(f"Downloading {cleaned_table_name} from {url}...")
         response = webscraper.get_request(url)
         spreadsheet = response.content
@@ -151,12 +141,11 @@ if __name__ == "__main__":
         else:
             print(f"File does not exist: {latest_file_key}")
     
-    # NOTE: do not email at bronze layer in handler; 
-    # should ultimately be done at gold after aggregations
+    # Send email if anything was updated
     if updated_spreadsheets:
-        # Email any updated spreadsheets
         emailer = Emailer(sender, gmail_app_password)
         # Write changed spreadsheets to /tmp
+        # NOTE: this is to be used in case we want to attach files in the future
         file_paths = []
         for cleaned_table_name, spreadsheet in updated_spreadsheets.items():
             file_path = f'tmp/{cleaned_table_name}.xlsx'
@@ -164,7 +153,6 @@ if __name__ == "__main__":
             with open(file_path, 'wb') as file:
                 file.write(spreadsheet)
         # Email contents
-        updated_table_names_formatted = [x + "\n" for x in updated_spreadsheets.keys()]
         title = "TLG - PBOC data has been updated today"
         body = emailer.create_email_body(email_input, parent_category_urls, updated_spreadsheets)
         # Send email
@@ -174,8 +162,16 @@ if __name__ == "__main__":
             body=body,
             #attachments=file_paths
         )
-        print("Successfully sent email!")
+        response = "Data was updated, successfully sent email."
     else:
-        print("No updates; did not send email.")
+        response = "No updates; did not send email."
+        
+    print(response)
+    return response
+
+
+if __name__ == "__main__":
+    main()
+    
 
 
