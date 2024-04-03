@@ -7,6 +7,24 @@ from layers.bronze.webscraper import Webscraper
 from common.s3_utils import S3Utility
 from common.emailer import Emailer
 from common.config_utils import load_config
+import sys
+
+def format_title(s: str) -> str:
+    # List of words not to capitalize in titles
+    small_words = {"a", "an", "the", "and", "but", "for", "nor", "or", "so", "yet", "at", 
+                   "by", "in", "of", "on", "to", "up", "for", "with", "over", "into", "onto", "from"}
+    caps_words = {"rmb, cgpi"}
+    words = s.split('-')
+    title_words = []
+    for i, word in enumerate(words):
+        if word in caps_words:
+            title_words.append(word.upper())
+        elif i == 0 or i == len(words) - 1 or word not in small_words:
+            title_words.append(word.capitalize())
+        else:
+            title_words.append(word)
+
+    return ' '.join(title_words)
 
 ################################################################################
 # Hashing
@@ -57,36 +75,53 @@ if __name__ == "__main__":
     ## Webscraping
     pboc_base_url = config['webscraping']['urls']['pboc']['base']
     base_url_2024 = config['webscraping']['urls']['pboc']['2024']['base']
-    extensions_2024 = list(config['webscraping']['urls']['pboc']['2024']['extensions'].values())
+    extensions_2024 = config['webscraping']['urls']['pboc']['2024']['extensions'] # dict
+    #extensions_2024 = list(config['webscraping']['urls']['pboc']['2024']['extensions'].values())
+    #parent_categories_2024 = list(config['webscraping']['urls']['pboc']['2024']['extensions'].keys())
+    #parent_categories_2024 = [format_title(x) for x in parent_categories_2024]
     ## Email
     sender = config['email']['sender']
     gmail_app_password = config['email']['gmail_app_password']
     recipients = config['email']['recipients']
 
     # Construct URLs
-    urls = []
-    for extension in extensions_2024:
+    parent_category_urls = dict()
+    for parent_category, extension in extensions_2024.items():
+        parent_category_formatted = format_title(parent_category)
         url = construct_pboc_url(base_url_2024, extension)
-        urls.append(url)
+        parent_category_urls[parent_category_formatted] = url
 
-    # Get .xlsx download paths for each page
+    # Get .xlsx and .htm paths for each page
+    # Also store {parent_category: {subcategory: url}...} for email
+    email_input = dict()
     webscraper = Webscraper()
-    for url in urls:
+    for parent_category, url in parent_category_urls.items():
         response = webscraper.get_request(url)
         html = response.text
         print(f"Downloaded html for {url}")
+        # xlsx for s3 storage
         if 'xlsx_paths' in locals():
             xlsx_paths.update(extract_download_paths(html, 'xlsx'))
         else:
             xlsx_paths = extract_download_paths(html, 'xlsx')
-        print("xlsx paths extracted. Sleeping for 3 seconds...")
+        # htm for email links
+        email_input[parent_category] = extract_download_paths(html, 'htm')
+        print("xlsx and htm paths extracted. Sleeping for 3 seconds...")
         time.sleep(3)
+    """
+    for k,v in email_input.items():
+        print(f"***{k}***")
+        for x,y in v.items():
+            print(f"{x}: {y}")
+    """
     
     # Download .xlsx files
     spreadsheets = dict()
+    #categories_urls = dict()
     for table_name, path in xlsx_paths.items():
         url = pboc_base_url + path
         cleaned_table_name = re.sub(r'[^a-zA-Z\s]', '', table_name).lower().replace(' ', '_')
+        #categories_urls[cleaned_table_name] = url
         print(f"Downloading {cleaned_table_name} from {url}...")
         response = webscraper.get_request(url)
         spreadsheet = response.content
@@ -129,14 +164,15 @@ if __name__ == "__main__":
             with open(file_path, 'wb') as file:
                 file.write(spreadsheet)
         # Email contents
-        title = "PBOC Data Update"
-        body = "Updated PBOC tables are attached."
+        updated_table_names_formatted = [x + "\n" for x in updated_spreadsheets.keys()]
+        title = "TLG - PBOC data has been updated today"
+        body = emailer.create_email_body(email_input, parent_category_urls, updated_spreadsheets)
         # Send email
         emailer.send_gmail(
             recipients=recipients,
             title=title,
             body=body,
-            attachments=file_paths
+            #attachments=file_paths
         )
         print("Successfully sent email!")
     else:
