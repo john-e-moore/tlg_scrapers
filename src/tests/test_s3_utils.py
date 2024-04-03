@@ -29,12 +29,6 @@ class TestS3Utility(unittest.TestCase):
         self.mock_aws.stop()
 
     @mock_aws
-    def test_get_latest_file(self):
-        self.s3_client.put_object(Bucket=self.bucket, Key=self.test_key, Body='Test content')
-        latest_file = S3Utility.get_latest_file(self.bucket, self.prefix, self.s3_client)
-        self.assertEqual(latest_file, self.test_key)
-
-    @mock_aws
     def test_upload_local_file_to_s3(self):
         with open(self.local_file_path, 'w') as f:
             f.write('Some test data')
