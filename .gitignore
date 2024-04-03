@@ -6,3 +6,4 @@ config.yml
 pat.txt
 *example.py
 test_file.csv
+*.zip
