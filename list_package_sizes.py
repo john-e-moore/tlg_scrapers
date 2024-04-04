@@ -2,11 +2,9 @@ import os
 import subprocess
 from pathlib import Path
 
-# Adjust the path to your environment's site-packages directory
-site_packages_path = Path('venv/lib64/python3.10/site-packages')
+site_packages_path = Path('venv_lambda/lib64/python3.10/site-packages')
 
-# Ensure the script uses the correct Python interpreter from the virtual environment
-pip_path = 'venv/bin/pip'
+pip_path = 'venv_lambda/bin/pip'
 
 # Get a list of installed packages using pip
 installed_packages = subprocess.run([pip_path, 'list'], capture_output=True, text=True)

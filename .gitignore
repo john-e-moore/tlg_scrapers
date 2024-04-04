@@ -1,4 +1,5 @@
 venv/
+venv_lambda/
 data/
 tmp/
 *__pycache__*
