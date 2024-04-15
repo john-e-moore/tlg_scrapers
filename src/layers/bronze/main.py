@@ -146,12 +146,16 @@ def main():
         emailer = Emailer(sender, gmail_app_password)
         # Write changed spreadsheets to /tmp
         # NOTE: this is to be used in case we want to attach files in the future
+        # NOTE: this will break the Lambda function; figure out how to write to /tmp
+        #  or just use S3.
+        """
         file_paths = []
         for cleaned_table_name, spreadsheet in updated_spreadsheets.items():
             file_path = f'tmp/{cleaned_table_name}.xlsx'
             file_paths.append(file_path)
             with open(file_path, 'wb') as file:
                 file.write(spreadsheet)
+        """
         # Email contents
         title = "TLG - PBOC data has been updated today"
         body = emailer.create_email_body(email_input, parent_category_urls, updated_spreadsheets)
