@@ -17,7 +17,8 @@ class S3Utility:
             raise Exception(f"Failed to list files in S3: {e}")
 
         if not files:
-            raise Exception("No files found under the specified bucket and prefix.")
+            print("No files found under the specified bucket and prefix.")
+            return None
 
         latest_file = max(files, key=lambda x: x['LastModified'])
         return latest_file['Key']
