@@ -1,13 +1,4 @@
-Webscraping and monitoring for economic data.
+Webscraping and monitoring for economic data. Typical pipeline includes checking a website or API endpoint for changes, downloading and processing the data, then sending an email to the team.
 
-'historical' contains scripts for ingesting historical data into S3.
-'jobs' contains code for recurring Lambda functions that download data and send emails when a website is updated.
-
-Eventual lambda function flow:
-- check_for_updates
-- if updates
- - ingest
- - process
- - aggregate
- - update charts
- - email spreadsheet + charts
+- People's Bank of China (/pboc)
+- U.S. Treasury Securities Primary Dealers Net Outright Position (/primary-dealers)
