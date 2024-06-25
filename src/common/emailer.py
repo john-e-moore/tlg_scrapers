@@ -1,7 +1,9 @@
 import smtplib
 import re
+from io import BytesIO
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from email.mime.base import MIMEBase
 from email import encoders
 from typing import Optional, List
@@ -29,11 +31,13 @@ class Emailer():
         self.sender = sender
         self.gmail_app_password = gmail_app_password
 
+    # TODO: allow attachments inline or not (change to dict like {'img.png': 'inline'})
     def send_gmail(
         self,
         recipients: list,
         title: str,
         body: str,
+        inline_image = None,
         attachments: Optional[List[str]] = None
     ) -> bool:
         """
@@ -52,8 +56,8 @@ class Emailer():
         msg['Subject'] = title
         msg.attach(MIMEText(body, 'html'))
 
+        # Attachments
         if attachments:
-            # Attach files
             for file_path in attachments:
                 with open(file_path, 'rb') as attachment:
                     part = MIMEBase('application', 'octet-stream')
@@ -61,6 +65,13 @@ class Emailer():
                     encoders.encode_base64(part)
                     part.add_header('Content-Disposition', f"attachment; filename= {file_path.split('/')[-1]}")
                     msg.attach(part)
+
+        # Inline image
+        if inline_image:
+            image = MIMEImage(inline_image.read())
+            image.add_header('Content-ID', '<image1>')
+            msg.attach(image)
+
         # Send email
         try:
             server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
@@ -74,7 +85,7 @@ class Emailer():
             print(f"Failed to send email: {e}")
             return False
         
-    def create_email_body(self, email_input: dict, parent_category_urls: dict, updated: dict) -> str:
+    def create_email_body_pboc(self, email_input: dict, parent_category_urls: dict, updated: dict) -> str:
         """
         Generate email body with categories and URLs. If a category is marked as updated,
         it is noted in the body.
@@ -108,3 +119,13 @@ class Emailer():
         lines.append("</ul>")  # End the bullet point list
         
         return header + "<br>" + "\n".join(lines)
+    
+    def create_email_body_primary_dealers(self):
+        html = """
+        <html>
+            <h2 style='font-weight:bold;'>Weekly update from the New York Fed's Primary Dealers survey</h2>
+            <img src="cid:image1">
+        </html>
+        """
+
+        return html
