@@ -5,16 +5,8 @@ from bs4 import BeautifulSoup
 from layers.bronze.webscraper import Webscraper
 from common.s3_utils import S3Utility
 from common.emailer import Emailer
+from common.hashing import compute_md5
 from common.config_utils import load_config
-
-################################################################################
-# Hashing
-################################################################################
-def compute_md5(obj: str) -> str:
-    """Calculate the MD5 hash of a string object."""
-    hash_md5 = hashlib.md5()
-    hash_md5.update(obj)
-    return hash_md5.hexdigest()
 
 ################################################################################
 # PBOC scraping
@@ -68,7 +60,7 @@ def format_title(s: str) -> str:
 ################################################################################
 def main():
     # Config
-    config = load_config("common/config.yml") # Run from base directory
+    config = load_config("pboc/config.yml") # Run from base directory
     ## S3
     s3_bucket = config['aws']['s3_bucket']
     s3_key = config['aws']['pboc']['s3_bronze_key']
@@ -158,7 +150,7 @@ def main():
         """
         # Email contents
         title = "TLG - PBOC data has been updated today"
-        body = emailer.create_email_body(email_input, parent_category_urls, updated_spreadsheets)
+        body = emailer.create_email_body_pboc(email_input, parent_category_urls, updated_spreadsheets)
         # Send email
         emailer.send_gmail(
             recipients=recipients,
