@@ -1,0 +1,26 @@
+email:
+  sender: 
+  recipients: 
+   - 
+   - 
+   - 
+  gmail_app_password: 
+aws:
+  s3_bucket: 
+  s3_key: 
+  region: 
+api:
+  version: 1.0
+  base_url: "https://markets.newyorkfed.org/api/pd/get/SBN2022/timeseries/{key_id}.{format}"
+  format: xlsx
+  key_ids:
+    "us-treasury-securities-ex-tips": "PDPOSGST-TOT"
+    "t-bills": "PDPOSGS-B"
+    "coupons": # L (less than) and G (greater than) refer to the coupon's term
+      - "PDPOSGSC-L2"
+      - "PDPOSGSC-G2L3"
+      - "PDPOSGSC-G3L6"
+      - "PDPOSGSC-G6L7"
+      - "PDPOSGSC-G7L11"
+      - "PDPOSGSC-G11L21"
+      - "PDPOSGSC-G21"
