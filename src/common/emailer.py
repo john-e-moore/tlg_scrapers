@@ -37,8 +37,8 @@ class Emailer():
         recipients: list,
         title: str,
         body: str,
-        inline_image = None,
-        attachments: Optional[List[str]] = None
+        inline_buffer = None,
+        attachments: dict = None
     ) -> bool:
         """
         Send an email via Gmail with specified details and attachments.
@@ -48,7 +48,7 @@ class Emailer():
         recipients (list): List of recipient email addresses.
         title (str): Email subject.
         body (str): Email body.
-        attachments (list): List of paths to attachment files.
+        attachments (list): Dict of {object: format} e.g. {excel_data: 'xlsx'}
         """
         msg = MIMEMultipart()
         msg['From'] = self.sender
@@ -58,18 +58,17 @@ class Emailer():
 
         # Attachments
         if attachments:
-            for file_path in attachments:
-                with open(file_path, 'rb') as attachment:
-                    part = MIMEBase('application', 'octet-stream')
-                    part.set_payload(attachment.read())
-                    encoders.encode_base64(part)
-                    part.add_header('Content-Disposition', f"attachment; filename= {file_path.split('/')[-1]}")
-                    msg.attach(part)
+            for obj, file_type in attachments.items():
+                part = MIMEBase('application', 'octet-stream')
+                part.set_payload(obj.getvalue())
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', f"attachment; filename='{obj}.{file_type}'")
+                msg.attach(part)
 
         # Inline image
-        if inline_image:
-            image = MIMEImage(inline_image.read())
-            image.add_header('Content-ID', '<image1>')
+        if inline_buffer:
+            image = MIMEImage(inline_buffer.getvalue(), name='plot.png')
+            image.add_header('Content-ID', '<plot1>')
             msg.attach(image)
 
         # Send email
@@ -120,11 +119,17 @@ class Emailer():
         
         return header + "<br>" + "\n".join(lines)
     
-    def create_email_body_primary_dealers(self):
-        html = """
+    def create_email_body_primary_dealers(self, inline_data_header):
+        """inline_data_header should be a string representation of a DataFrame."""
+
+        html = f"""
         <html>
-            <h2 style='font-weight:bold;'>Weekly update from the New York Fed's Primary Dealers survey</h2>
-            <img src="cid:image1">
+            <head></head>
+            <body>
+                <h2 style='font-weight:bold;'>Updated data from New York Fed's Primary Dealers survey</h2>
+                <img src="cid:plot1">
+                <pre>{inline_data_header}</pre>
+            </body>
         </html>
         """
 

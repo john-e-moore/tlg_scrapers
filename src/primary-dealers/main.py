@@ -26,10 +26,8 @@ def has_data_changed(s3, s3_bucket, s3_key, data):
     existing_data_md5 = s3.download_etag(s3_bucket, s3_key)
     new_data_md5 = compute_md5(data)
     if existing_data_md5 != new_data_md5:
-        print(f"Data has changed.")
         return True
     else:
-        print(f"Data has not changed.")
         return False
     
 def generate_line_plot(
@@ -80,14 +78,14 @@ def generate_line_plot(
     plt.savefig('plot.png')
 
     # Save plot to a BytesIO object in memory
-    img_data = BytesIO()
-    plt.savefig(img_data, format=file_format, bbox_inches='tight')
-    img_data.seek(0)  # Move the cursor to the beginning of the BytesIO object
+    plot_buffer = BytesIO()
+    plt.savefig(plot_buffer, format=file_format, bbox_inches='tight')
+    plot_buffer.seek(0)  # Move the cursor to the beginning of the BytesIO object
 
     # Close the plot figure to free up memory
     plt.close(fig)
 
-    return img_data
+    return plot_buffer
 
 def main():
     # Config
@@ -133,6 +131,7 @@ def main():
         data_changed = has_data_changed(s3, s3_bucket, s3_key_data, data)
         
         if data_changed:
+            print(f"{key_id} has changed.")
             # Upload to S3
             print(f"S3 destination: {s3_bucket}/{s3_key_data}")
             # TODO: uncomment in prod
@@ -150,7 +149,7 @@ def main():
 
                 # Make plot
                 plot_file_format = 'png'
-                plot = generate_line_plot(
+                plot = generate_line_plot( # Returns BytesIO object
                     df=df,
                     x_axis_col='Date',
                     y_axis_col='$ (billions)',
@@ -167,18 +166,24 @@ def main():
                 s3_key_plot = f'{s3_key}/plots/{plot_filename}'
                 s3.upload_obj_s3(s3_bucket, s3_key_plot, plot)
             
-                # Email contents
+                # Email
+                ## Data attachment
+                xlsx_buffer = BytesIO()
+                df.to_excel(xlsx_buffer, index=False, engine='openpyxl')
+                xlsx_buffer.seek(0)
+                ## Data header
+                df_header_string = df.head().to_string(index=False)
+                ## Format contents
                 emailer = Emailer(sender, gmail_app_password)
                 title = "TLG - Primary Dealers Statistics"
-                body = emailer.create_email_body_primary_dealers()
-                # Send email
-                #inline_image = plot.save(plot, format='PNG')
+                body = emailer.create_email_body_primary_dealers(df_header_string)
+                ## Send email
                 emailer.send_gmail(
                     recipients=recipients,
                     title=title,
                     body=body,
-                    #inline_image=inline_image,
-                    attachments=['plot.png', 'PDPOSGST-TOT_2022-9999.xlsx']
+                    inline_buffer=plot,
+                    #attachments={xlsx_buffer: '.xlsx'}
                 )
         break
 
