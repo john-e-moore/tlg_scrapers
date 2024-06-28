@@ -138,37 +138,37 @@ def main():
             # TODO: uncomment in prod
             #s3.upload_obj_s3(s3_bucket, s3_key_data, data)
 
-            # Prepare data for plotting
-            usecols = ['As Of Date', 'Value (millions)']
-            df = pd.read_excel(BytesIO(data), usecols=usecols)
-            df.columns = ['Date', '$ (millions)']
-            df['$ (billions)'] = (df['$ (millions)']/1000).astype('int')
-            df['Date'] = pd.to_datetime(df['Date'])
-            df = df[::-1] # Invert rows
-
-            # Make plot
-            plot_file_format = 'png'
-            plot = generate_line_plot(
-                df=df,
-                x_axis_col='Date',
-                y_axis_col='$ (billions)',
-                x_label=None,
-                y_label='$ (billions)',
-                x_label_interval=4,
-                title='Primary Dealer Net Outright Position: US Government Securities (excluding TIPS)',
-                marker=',',
-                file_format=plot_file_format
-            )
-
-            # Upload plot to S3
-            plot_filename = f'{key_id}_{start_year}-{end_year}.{plot_file_format}'
-            s3_key_plot = f'{s3_key}/plots/{plot_filename}'
-            s3.upload_obj_s3(s3_bucket, s3_key_plot, plot)
-            
-            # Send email (only for PDPOSGST-TOT)
+            # Plot and email only for PDPOSGST-TOT
             if key_id == 'PDPOSGST-TOT':
-                emailer = Emailer(sender, gmail_app_password)
+                # Prepare data for plotting
+                usecols = ['As Of Date', 'Value (millions)']
+                df = pd.read_excel(BytesIO(data), usecols=usecols)
+                df.columns = ['Date', '$ (millions)']
+                df['$ (billions)'] = (df['$ (millions)']/1000).astype('int')
+                df['Date'] = pd.to_datetime(df['Date'])
+                df = df[::-1] # Invert rows
+
+                # Make plot
+                plot_file_format = 'png'
+                plot = generate_line_plot(
+                    df=df,
+                    x_axis_col='Date',
+                    y_axis_col='$ (billions)',
+                    x_label=None,
+                    y_label='$ (billions)',
+                    x_label_interval=4,
+                    title='Primary Dealer Net Outright Position: US Government Securities (excluding TIPS)',
+                    marker=',',
+                    file_format=plot_file_format
+                )
+
+                # Upload plot to S3
+                plot_filename = f'{key_id}_{start_year}-{end_year}.{plot_file_format}'
+                s3_key_plot = f'{s3_key}/plots/{plot_filename}'
+                s3.upload_obj_s3(s3_bucket, s3_key_plot, plot)
+            
                 # Email contents
+                emailer = Emailer(sender, gmail_app_password)
                 title = "TLG - Primary Dealers Statistics"
                 body = emailer.create_email_body_primary_dealers()
                 # Send email

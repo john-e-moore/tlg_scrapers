@@ -8,3 +8,5 @@ pat.txt
 *example.py
 test_file.csv
 *.zip
+*.xlsx
+*.png
