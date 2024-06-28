@@ -6,30 +6,9 @@ import matplotlib.dates as mdates
 from io import BytesIO
 from common.s3_utils import S3Utility
 from common.emailer import Emailer
-from common.hashing import compute_md5
+from common.hashing import has_data_changed
 from common.config_utils import load_config
 
-def has_data_changed(s3, s3_bucket, s3_key, data):
-    """
-    Compares MD5 hash of 'data' to the etag of the S3 file, which is also 
-    an MD5 hash.
-    
-    :params:
-    s3: S3Utility object from common.s3_utils
-    s3_bucket: S3 bucket
-    s3_key: S3 key
-    data: any data object; in this case the .xlsx response from a GET request.
-
-    :returns:
-    True if data has changed, False if not.
-    """
-    existing_data_md5 = s3.download_etag(s3_bucket, s3_key)
-    new_data_md5 = compute_md5(data)
-    if existing_data_md5 != new_data_md5:
-        return True
-    else:
-        return False
-    
 def generate_line_plot(
     df: pd.DataFrame,
     x_axis_col: str,
@@ -73,10 +52,6 @@ def generate_line_plot(
     if y_label:
         plt.ylabel(y_label)
 
-    # Save locally
-    # TODO: remove before deploying
-    plt.savefig('plot.png')
-
     # Save plot to a BytesIO object in memory
     plot_buffer = BytesIO()
     plt.savefig(plot_buffer, format=file_format, bbox_inches='tight')
@@ -98,6 +73,7 @@ def main():
     print(f"API version: {api_version}")
     api_base_url = config['api']['base_url']
     api_file_format = config['api']['format'] # e.g. xlsx
+    sleep_time = config['api']['sleep_time']
     api_key_ids = config['api']['key_ids']
     ## Email
     sender = config['email']['sender']
@@ -134,8 +110,7 @@ def main():
             print(f"{key_id} has changed.")
             # Upload to S3
             print(f"S3 destination: {s3_bucket}/{s3_key_data}")
-            # TODO: uncomment in prod
-            #s3.upload_obj_s3(s3_bucket, s3_key_data, data)
+            s3.upload_obj_s3(s3_bucket, s3_key_data, data)
 
             # Plot and email only for PDPOSGST-TOT
             if key_id == 'PDPOSGST-TOT':
@@ -165,7 +140,7 @@ def main():
                 plot_filename = f'{key_id}_{start_year}-{end_year}.{plot_file_format}'
                 s3_key_plot = f'{s3_key}/plots/{plot_filename}'
                 s3.upload_obj_s3(s3_bucket, s3_key_plot, plot)
-            
+                
                 # Email
                 ## Data attachment
                 xlsx_buffer = BytesIO()
@@ -185,8 +160,8 @@ def main():
                     inline_buffer=plot,
                     #attachments={xlsx_buffer: '.xlsx'}
                 )
-        break
-
+        print(f"Sleeping for {sleep_time} seconds.")
+        time.sleep(sleep_time)
 
 if __name__ == "__main__":
     main()
